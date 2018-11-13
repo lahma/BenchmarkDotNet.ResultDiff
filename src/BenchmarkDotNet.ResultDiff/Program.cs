@@ -36,10 +36,10 @@ namespace BenchmarkDotNet.ResultDiff
                 "FileName",
                 "N",
                 "Mean",
-                "Gen 0",
-                "Gen 1",
-                "Gen 2",
-                "Allocated"
+                "Gen 0/1k Op",
+                "Gen 1/1k Op",
+                "Gen 2/1k Op",
+                "Allocated Memory/Op"
             };
 
             var oldDirName = oldDir.Name != newDir.Name ? oldDir.Name : oldDir.Parent.Name;
@@ -138,9 +138,13 @@ namespace BenchmarkDotNet.ResultDiff
 
                                         if (oldTokens.Length == newTokens.Length)
                                         {
-                                            bool canCalculateDiff = oldTokens[0] != "-" && newTokens[0] != "-";
+                                            bool canCalculateDiff = oldTokens[0] != "-"
+                                                                    && newTokens[0] != "-"
+                                                                    && oldTokens[0] != "N/A"
+                                                                    && newTokens[0] != "N/A";
 
                                             decimal newMultiplier = 1;
+                                            const decimal ConversionFromBigger = 0.0009765625M;
 
                                             if (canCalculateDiff && oldTokens.Length > 1)
                                             {
@@ -151,11 +155,16 @@ namespace BenchmarkDotNet.ResultDiff
                                                     // ok
                                                 }
                                                 else if (oldUnit == "MB" && newUnit == "KB"
+                                                         || oldUnit == "KB" && newUnit == "B"
                                                          || oldUnit == "GB" && newUnit == "MB"
                                                          || oldUnit == "s" && newUnit == "ms"
                                                          || oldUnit == "ms" && newUnit == "us")
                                                 {
-                                                    newMultiplier = 0.001M;
+                                                    newMultiplier = ConversionFromBigger;
+                                                }
+                                                else if (oldUnit == "MB" && newUnit == "B")
+                                                {
+                                                    newMultiplier = ConversionFromBigger * ConversionFromBigger;
                                                 }
                                                 else
                                                 {
@@ -174,6 +183,11 @@ namespace BenchmarkDotNet.ResultDiff
                                             else if (oldTokens[0] == "-" || newTokens[0] == "-")
                                             {
                                                 // OK
+                                            }
+                                            else if (decimal.TryParse(oldTokens[0], NumberStyles.Number, CultureInfo.InvariantCulture, out _)
+                                                     && newTokens[0] == "-")
+                                            {
+                                                value += " (-100%)";                                               
                                             }
                                             else
                                             {
