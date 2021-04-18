@@ -33,6 +33,7 @@ namespace BenchmarkDotNet.ResultDiff
 
             var columns = new List<string>
             {
+                "Type",
                 "Method",
                 "FileName",
                 "N",
@@ -108,7 +109,7 @@ namespace BenchmarkDotNet.ResultDiff
                         writer.Write("| **New** |");
                         foreach (var effectiveHeader in effectiveHeaders)
                         {
-                            if (effectiveHeader == "Method" || effectiveHeader == "N" || effectiveHeader == "FileName")
+                            if (effectiveHeader == "Type" || effectiveHeader == "Method" || effectiveHeader == "N" || effectiveHeader == "FileName")
                             {
                                 writer.Write("\t|");
                             }
@@ -151,11 +152,14 @@ namespace BenchmarkDotNet.ResultDiff
                                                      || oldUnit == "KB" && newUnit == "B"
                                                      || oldUnit == "GB" && newUnit == "MB"
                                                      || oldUnit == "s" && newUnit == "ms"
-                                                     || oldUnit == "ms" && newUnit == "us")
+                                                     || oldUnit == "ms" && newUnit == "us"
+                                                     || oldUnit == "ms" && newUnit == "μs"
+                                                     || oldUnit == "μs" && newUnit == "ns")
                                             {
                                                 newMultiplier = ConversionFromBigger;
                                             }
-                                            else if (oldUnit == "MB" && newUnit == "B")
+                                            else if (oldUnit == "MB" && newUnit == "B" 
+                                                     )
                                             {
                                                 newMultiplier = ConversionFromBigger * ConversionFromBigger;
                                             }
